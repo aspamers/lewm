@@ -103,7 +103,52 @@ class NoRegularizer(nn.Module):
         return z.new_zeros(())
 
 
-def make_regularizer(kind, num_proj=64, separation=.75, knots=17):
+class RadialRegularizer(DistributionRegularizer):
+    """Uniform direction times R, with R^2 ~ Gamma(D/(2v), scale=2v).
+
+    E[R^2]=D and Cov(X)=I. v=1 is exactly Gaussian; v=0 is the
+    radius-sqrt(D) sphere surface. v scales Var(R^2) relative to Gaussian.
+    Targets are precomputed once in float64 with SciPy, then stored in fp32.
+    Only the projected CF target changes; no explicit radial loss is added.
+    """
+    def __init__(self, relative_variance=1., latent_dim=192, **kwargs):
+        if not math.isfinite(relative_variance) or relative_variance < 0:
+            raise ValueError("relative_variance must be finite and nonnegative")
+        if not isinstance(latent_dim, int) or latent_dim < 2:
+            raise ValueError("latent_dim must be an integer >= 2")
+        super().__init__(kind="gaussian", **kwargs)
+        self.relative_variance = relative_variance
+        self.latent_dim = latent_dim
+        self.kind = "radial"
+        if relative_variance == 1:
+            target = self.phi.clone()  # Exact SIGReg fp32 reference.
+        else:
+            from scipy.special import hyp0f1, hyp1f1
+            t = self.t.double().numpy()
+            if relative_variance == 0:
+                values = hyp0f1(latent_dim/2, -latent_dim*t*t/4)
+            else:
+                k = latent_dim/(2*relative_variance)
+                values = hyp1f1(k, latent_dim/2, -latent_dim*t*t/(4*k))
+            target = torch.as_tensor(values, dtype=self.t.dtype)
+        if not torch.isfinite(target).all() or (target.abs() > 1.000001).any():
+            raise RuntimeError("Invalid radial characteristic function")
+        self.register_buffer("radial_phi", target)
+
+    def target_cf(self, directions):
+        if directions.shape[0] != self.latent_dim:
+            raise ValueError("Radial target dimension does not match embedding")
+        return self.radial_phi.expand(directions.shape[1], -1)
+
+
+RADIAL_VARIANCES = {"radial_broad": 8., "radial_half": .5,
+                    "radial_quarter": .25, "radial_sphere": 0.}
+
+
+def make_regularizer(kind, num_proj=64, separation=.75, knots=17, latent_dim=192):
+    if kind in RADIAL_VARIANCES:
+        return RadialRegularizer(relative_variance=RADIAL_VARIANCES[kind],
+                                 latent_dim=latent_dim, num_proj=num_proj, knots=knots)
     if kind in {"student_t3", "student_t5", "student_t9"}:
         return StudentTRegularizer(df=int(kind.removeprefix("student_t")), num_proj=num_proj, knots=knots)
     if kind == "none":

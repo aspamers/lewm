@@ -143,7 +143,8 @@ def diagnostics(m, train, train_states, data, states):
             "mixture_axis_histogram": hist.cpu().tolist()}
 
 
-def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=(), fixed_comparison=False):
+def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=(), fixed_comparison=False,
+        select_primary=False):
     grid = GRID if grid is None else grid
     torch.set_num_threads(4)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -170,7 +171,7 @@ def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=(),
             for weight in weights:
                 torch.manual_seed(seed)
                 m = model().to(device)
-                reg = make_regularizer(kind)
+                reg = make_regularizer(kind, latent_dim=WIDTH)
                 if reg is not None:
                     reg = reg.to(device)
                 opt = torch.optim.AdamW(m.parameters(), lr=5e-4, weight_decay=1e-3)
@@ -204,6 +205,10 @@ def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=(),
         selected[kind] = min(weights, key=lambda w: statistics.mean(
             r["goal_distance"] for r in report["validation"] if r["kind"] == kind and r["weight"] == w))
     report["selected_weights"] = selected
+    if select_primary:
+        report["selected_primary_kind"] = min(grid, key=lambda kind: statistics.mean(
+            r["goal_distance"] for r in report["validation"]
+            if r["kind"] == kind and r["weight"] == selected[kind]))
     student_kinds = [kind for kind in grid if kind.startswith("student_t")]
     if student_kinds and not fixed_comparison:
         report["selected_student_kind"] = min(student_kinds, key=lambda kind: statistics.mean(
