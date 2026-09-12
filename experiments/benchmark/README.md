@@ -4,6 +4,8 @@ The protocol below documents the completed original screen. After diagnosing
 precision-sensitive low embedding spread, new runs default to float32 training
 and use a corrected correlation penalty. See `SCALE_FIX.md`. These changes are
 not retroactive to the recorded results; use fresh output directories.
+New evaluations also calibrate encoder projection BatchNorm using training data
+only; see `CALIBRATION.md`. Calibrated scores are saved separately from originals.
 
 Scope narrowed by the user to the two simplest target environments. Cube and
 Reacher are deferred. This is a bounded first pass on official datasets and

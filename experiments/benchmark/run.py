@@ -25,6 +25,7 @@ from partitions import make_partition, EvaluationSeeds
 from check_data import check as check_data
 from rechunk import convert
 from runtime import build_model, normalize_pixels, objective
+from calibration import calibrate_projection_bn
 from lewm.regularizers import make_regularizer
 
 ENVIRONMENTS = {"tworoom": ("tworoom.h5", "swm/TwoRoom-v1"),
@@ -178,14 +179,36 @@ def train(path, partition, kind, weight, seed, args, output):
 
 
 @torch.no_grad()
-def evaluate(path, partition, env, checkpoint, stage, args):
-    destination = checkpoint/(stage+".json")
+def evaluate(path, partition, env, checkpoint, stage, args, calibrate=True):
+    destination = checkpoint/(stage+("-calibrated" if calibrate else "")+".json")
+    provenance = None
+    if calibrate:
+        provenance = {"split":"train","seed":8821,"clips":512,"batch":64,
+                      "evaluation":{"stage":stage,"goals":partition[stage+"_goals"],
+                                    "candidates":args.candidates,"cem_steps":args.cem_steps},
+                      "evaluation_code_sha256":hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                      "checkpoint_sha256":hashlib.sha256((checkpoint/"weights.pt").read_bytes()).hexdigest(),
+                      "train_episodes_sha256":hashlib.sha256(json.dumps(partition["train"]).encode()).hexdigest(),
+                      "code_sha256":hashlib.sha256(Path(__file__).with_name("calibration.py").read_bytes()).hexdigest()}
     if destination.exists():
-        return json.loads(destination.read_text())
+        previous = json.loads(destination.read_text())
+        if calibrate and previous.get("calibration",{}).get("provenance") != provenance:
+            raise ValueError("Calibration inputs changed; use a fresh evaluation output")
+        return previous
     torch.manual_seed(6173)
     model = build_model(len(partition["action_mean"])).cuda().eval()
     model.load_state_dict(torch.load(checkpoint/"weights.pt", map_location="cuda", weights_only=True))
     model.requires_grad_(False)
+    calibration = None
+    if calibrate:
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
+        cache = path.with_name(path.stem+"_frames.h5")
+        loader = DataLoader(Clips(cache, partition["train"],8821,8,64),batch_size=64,
+                            generator=torch.Generator().manual_seed(8821))
+        calibration = {"provenance":provenance, **calibrate_projection_bn(model,
+                       ({"pixels":normalize_pixels(b["pixels"].cuda())} for b in loader))}
+        del loader
     scaler = StandardScaler()
     scaler.mean_ = np.array(partition["action_mean"])
     scaler.scale_ = np.array(partition["action_std"])
@@ -211,6 +234,8 @@ def evaluate(path, partition, env, checkpoint, stage, args):
     results = {k: v.tolist() if hasattr(v, "tolist") else v for k, v in metrics.items()}
     results.update(evaluation_seconds=time.perf_counter()-start, goals=goal,
                    generated_evaluation_seeds=dataset.injected)
+    if calibration is not None:
+        results["calibration"] = calibration
     write_json(destination, results)
     del model, solver, world
     gc.collect()
@@ -256,7 +281,8 @@ def main():
     if manifest.exists() and json.loads(manifest.read_text())["settings"] != settings:
         raise ValueError("Cannot change settings in an existing run directory")
     sources = [Path(__file__), Path(__file__).with_name("runtime.py"), Path(__file__).with_name("partitions.py"),
-               Path(__file__).with_name("check_data.py"), Path(__file__).with_name("rechunk.py"), Path("src/lewm/regularizers.py"),
+               Path(__file__).with_name("check_data.py"), Path(__file__).with_name("rechunk.py"),
+               Path(__file__).with_name("calibration.py"), Path("src/lewm/regularizers.py"),
                Path("src/lewm/jepa.py"), Path("src/lewm/module.py"),
                Path("config/train/model/lewm.yaml"), Path("config/eval/tworoom.yaml"), Path("config/eval/pusht.yaml")]
     hashes = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources}

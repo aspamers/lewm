@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from run import Clips, ENVIRONMENTS, write_json
 from runtime import build_model, normalize_pixels
+from calibration import calibrate_projection_bn
 
 
 @torch.no_grad()
@@ -30,12 +31,22 @@ def diagnose(root, data_root):
         clips = Clips(path, partition["test"], 8802, 8, 64)
         for run in tests:
             name = f"{run['kind']}-w{run['weight']}-s{run['seed']}"
-            output = folder/name/"diagnostics.json"
+            calibrated = "calibration" in run
+            output = folder/name/("diagnostics-calibrated.json" if calibrated else "diagnostics.json")
             if output.exists():
                 rows.append(json.loads(output.read_text()))
                 continue
             model = build_model(len(partition["action_mean"])).cuda().eval()
             model.load_state_dict(torch.load(folder/name/"weights.pt", map_location="cuda", weights_only=True))
+            if calibrated:
+                torch.backends.cuda.matmul.allow_tf32 = False
+                torch.backends.cudnn.allow_tf32 = False
+                calibration_loader = DataLoader(Clips(path,partition["train"],8821,8,64),batch_size=64,
+                                                generator=torch.Generator().manual_seed(8821))
+                calibration = calibrate_projection_bn(model,
+                    ({"pixels":normalize_pixels(b["pixels"].cuda())} for b in calibration_loader))
+                if calibration["statistics_sha256"] != run["calibration"]["statistics_sha256"]:
+                    raise RuntimeError("Diagnostic calibration differs from planning calibration")
             embeddings = []
             for batch in DataLoader(clips, batch_size=64, num_workers=0):
                 z = model.encode({"pixels": normalize_pixels(batch["pixels"].cuda())})["emb"]
@@ -52,7 +63,7 @@ def diagnose(root, data_root):
             entropy_rank = float(torch.exp(-(p*p.clamp_min(1e-30).log()).sum()))
             mask = ~torch.eye(z.shape[-1], dtype=bool)
             row = {"environment": env, "kind": run["kind"], "weight": run["weight"], "seed": run["seed"],
-                   "clips": len(z), "std_mean": float(std.mean()), "std_min": float(std.min()),
+                   "clips": len(z), "calibrated": calibrated, "std_mean": float(std.mean()), "std_min": float(std.min()),
                    "covariance_entropy_rank": entropy_rank,
                    "mean_absolute_correlation": float(corr[mask].abs().mean())}
             write_json(output, row)

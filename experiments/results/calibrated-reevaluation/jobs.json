@@ -1,0 +1,125 @@
+[
+  {
+    "cohort": "original_500",
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 31,
+    "checkpoint": "outputs/two-environment-benchmark/tworoom/gaussian-w0.03-s31"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 32,
+    "checkpoint": "outputs/two-environment-benchmark/tworoom/gaussian-w0.03-s32"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "seed": 31,
+    "checkpoint": "outputs/two-environment-benchmark/tworoom/variance_decorrelation-w0.1-s31"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "seed": 32,
+    "checkpoint": "outputs/two-environment-benchmark/tworoom/variance_decorrelation-w0.1-s32"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "pusht",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 31,
+    "checkpoint": "outputs/two-environment-benchmark/pusht/gaussian-w0.03-s31"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "pusht",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 32,
+    "checkpoint": "outputs/two-environment-benchmark/pusht/gaussian-w0.03-s32"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "pusht",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "seed": 31,
+    "checkpoint": "outputs/two-environment-benchmark/pusht/variance_decorrelation-w0.3-s31"
+  },
+  {
+    "cohort": "original_500",
+    "environment": "pusht",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "seed": 32,
+    "checkpoint": "outputs/two-environment-benchmark/pusht/variance_decorrelation-w0.3-s32"
+  },
+  {
+    "cohort": "original_1000",
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 31,
+    "checkpoint": "outputs/two-environment-1000/tworoom/gaussian-w0.03-s31"
+  },
+  {
+    "cohort": "original_1000",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "seed": 31,
+    "checkpoint": "outputs/two-environment-1000/tworoom/variance_decorrelation-w0.1-s31"
+  },
+  {
+    "cohort": "original_1000",
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 32,
+    "checkpoint": "outputs/two-environment-1000/tworoom/gaussian-w0.03-s32"
+  },
+  {
+    "cohort": "original_1000",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "seed": 32,
+    "checkpoint": "outputs/two-environment-1000/tworoom/variance_decorrelation-w0.1-s32"
+  },
+  {
+    "cohort": "corrected_fp32_250",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "correlation_weight": 0.1,
+    "seed": 31,
+    "checkpoint": "outputs/floor-strength/floor0.1-s31"
+  },
+  {
+    "cohort": "corrected_fp32_250",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "correlation_weight": 0.1,
+    "seed": 31,
+    "checkpoint": "outputs/floor-strength/floor0.3-s31"
+  },
+  {
+    "cohort": "corrected_fp32_250",
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 1.0,
+    "correlation_weight": 0.1,
+    "seed": 31,
+    "checkpoint": "outputs/floor-strength/floor1-s31"
+  }
+]
