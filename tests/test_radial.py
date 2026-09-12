@@ -1,4 +1,5 @@
 import math
+from decimal import Decimal, localcontext
 
 import pytest
 import torch
@@ -62,3 +63,21 @@ def test_radial_targets_receive_gradients_and_reject_wrong_dimension():
     for v in (-1, float("nan"), float("inf")):
         with pytest.raises(ValueError):
             RadialRegularizer(relative_variance=v)
+
+
+@pytest.mark.parametrize("v", [0., .25, .5, 8.])
+def test_small_cf_differences_resolved_by_high_precision_moments(v):
+    # Monte Carlo tolerance cannot resolve the narrow targets' ~0.001 changes.
+    # Independently expand cosine using joint projected even moments in 70-digit
+    # arithmetic, rather than another special-function implementation.
+    reg = RadialRegularizer(relative_variance=v)
+    with localcontext() as context:
+        context.prec = 70
+        for index in (4, 8, 12, 16):
+            t = Decimal(str(float(reg.t[index])))
+            d, variance = Decimal(192), Decimal(str(v))
+            term = total = Decimal(1)
+            for n in range(1, 240):
+                term *= -t*t*(d+2*variance*(n-1))/(2*n*(d+2*(n-1)))
+                total += term
+            assert abs(float(total) - float(reg.radial_phi[index])) < 3e-8
