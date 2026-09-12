@@ -16,6 +16,13 @@ from lewm import SIGReg, get_column_normalizer, get_img_preprocessor, SaveCkptCa
 def lejepa_forward(self, batch, stage, cfg):
     """encode observations, predict next states, compute losses."""
 
+    if cfg.get("experiment") is not None:
+        from lewm.bottleneck import predictive_loss
+        output = predictive_loss(self.model, batch, self.sigreg, **cfg.experiment)
+        self.log_dict({f"{stage}/{k}": v.detach() for k, v in output.items()},
+                      on_step=True, on_epoch=True, sync_dist=True)
+        return output
+
     ctx_len = cfg.history_size
     n_preds = cfg.num_preds
     lambd = cfg.loss.sigreg.weight
@@ -45,6 +52,7 @@ def lejepa_forward(self, batch, stage, cfg):
 
 @hydra.main(version_base=None, config_path="./config/train", config_name="lewm")
 def run(cfg):
+    pl.seed_everything(cfg.seed, workers=True)
     #########################
     ##       dataset       ##
     #########################
@@ -55,11 +63,22 @@ def run(cfg):
     dataset = swm.data.load_dataset(
         dataset_name, transform=None, cache_dir=cache_dir, **dataset_cfg
     )
+    experiment = cfg.get("experiment") is not None
+    if experiment:
+        from lewm.experiment_data import split_episodes, action_statistics
+        from lewm.utils import ZScoreNormalizer
+        train_set, val_set, train_episodes = split_episodes(dataset, cfg.train_split, cfg.split_seed)
+        action_mean, action_std = action_statistics(dataset, train_episodes)
     transforms = [get_img_preprocessor(source='pixels', target='pixels', img_size=cfg.img_size)]
     
     with open_dict(cfg):
         for col in cfg.data.dataset.keys_to_load:
             if col.startswith("pixels"):
+                continue
+            if experiment:
+                if col == "action":
+                    transforms.append(spt.data.transforms.WrapTorchTransform(
+                        ZScoreNormalizer(action_mean, action_std), source=col, target=col))
                 continue
             normalizer = get_column_normalizer(dataset, col, col)
             transforms.append(normalizer)
@@ -70,9 +89,10 @@ def run(cfg):
     dataset.transform = transform
 
     rnd_gen = torch.Generator().manual_seed(cfg.seed)
-    train_set, val_set = spt.data.random_split(
-        dataset, lengths=[cfg.train_split, 1 - cfg.train_split], generator=rnd_gen
-    )
+    if not experiment:
+        train_set, val_set = spt.data.random_split(
+            dataset, lengths=[cfg.train_split, 1 - cfg.train_split], generator=rnd_gen
+        )
 
     train = torch.utils.data.DataLoader(train_set, **cfg.loader,shuffle=True, drop_last=True, generator=rnd_gen)
     val = torch.utils.data.DataLoader(val_set, **cfg.loader, shuffle=False, drop_last=False)
@@ -115,6 +135,12 @@ def run(cfg):
         logger.log_hyperparams(OmegaConf.to_container(cfg))
 
     run_dir.mkdir(parents=True, exist_ok=True)
+    if experiment:
+        import json
+        (run_dir / "split_and_action_stats.json").write_text(json.dumps({
+            "train_episodes": train_episodes, "split_seed": cfg.split_seed,
+            "action_mean": action_mean.tolist(), "action_std": action_std.tolist(),
+        }, indent=2))
     with open(run_dir / "config.yaml", "w") as f:
         OmegaConf.save(cfg, f)
 

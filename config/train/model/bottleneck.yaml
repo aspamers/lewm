@@ -1,0 +1,42 @@
+_target_: lewm.bottleneck.PredictiveBottleneck
+encoder:
+  _target_: stable_pretraining.backbone.utils.vit_hf
+  size: tiny
+  patch_size: 14
+  image_size: ${img_size}
+  pretrained: false
+  use_mask_token: false
+predictor:
+  _target_: lewm.bottleneck.BottleneckPredictor
+  latent_dim: ${latent_dim}
+  hidden_dim: 192
+  num_frames: ${history_size}
+  depth: 6
+  heads: 16
+  mlp_dim: 2048
+  dim_head: 64
+  dropout: 0.1
+action_encoder:
+  _target_: lewm.module.Embedder
+  input_dim: ???
+  emb_dim: 192
+projector:
+  _target_: lewm.module.MLP
+  input_dim: 192
+  output_dim: ${latent_dim}
+  hidden_dim: 2048
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+pred_proj:
+  _target_: lewm.module.MLP
+  input_dim: 192
+  output_dim: ${latent_dim}
+  hidden_dim: 2048
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+decoder:
+  _target_: lewm.bottleneck.ObservationDecoder
+  latent_dim: ${latent_dim}
+  image_size: ${img_size}

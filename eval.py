@@ -71,6 +71,10 @@ def run(cfg: DictConfig):
     ep_indices, _ = np.unique(stats_dataset.get_col_data(col_name), return_index=True)
 
     process = {}
+    experiment_stats = None
+    if cfg.get("action_stats"):
+        import json
+        experiment_stats = json.loads(Path(cfg.action_stats).read_text())
     for col in cfg.dataset.keys_to_cache:
         if col in ["pixels"]:
             continue
@@ -78,6 +82,10 @@ def run(cfg: DictConfig):
         col_data = stats_dataset.get_col_data(col)
         col_data = col_data[~np.isnan(col_data).any(axis=1)]
         processor.fit(col_data)
+        if col == "action" and experiment_stats is not None:
+            processor.mean_ = np.asarray(experiment_stats["action_mean"]).reshape(-1)
+            processor.scale_ = np.asarray(experiment_stats["action_std"]).reshape(-1)
+            processor.var_ = processor.scale_ ** 2
         process[col] = processor
 
         if col != "action":
@@ -88,6 +96,10 @@ def run(cfg: DictConfig):
 
     if policy != "random":
         model = swm.wm.utils.load_pretrained(cfg.policy)
+        if cfg.get("planning_cost", "latent") != "latent":
+            if not hasattr(model, "planning_cost"):
+                raise ValueError("This checkpoint does not support decoded planning")
+            model.planning_cost = cfg.planning_cost
         model = model.to("cuda")
         model = model.eval()
         model.requires_grad_(False)

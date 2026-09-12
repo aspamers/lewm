@@ -1,0 +1,20 @@
+defaults:
+  - lewm
+  - override model: bottleneck
+  - _self_
+
+latent_dim: 16
+split_seed: 42
+# Dataset window length is history_size + num_preds. This does NOT change
+# the one-step baseline target in predictive_loss.
+num_preds: 5
+subdir: bottleneck-d${latent_dim}-s${seed}
+output_model_name: ${subdir}
+loader:
+  batch_size: 16
+experiment:
+  history_size: ${history_size}
+  horizons: [1, 3, 5]
+  latent_weight: 0.1
+  observation_weight: 1.0
+  sigreg_weight: 0.0
