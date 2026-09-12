@@ -70,12 +70,42 @@ class MomentRegularizer(nn.Module):
         return mean.square().mean() + floor + off_diagonal.square().sum((-1, -2)).mean() / z.shape[-1]
 
 
+class StudentTRegularizer(DistributionRegularizer):
+    """Spherical multivariate Student-t, mean zero and covariance I.
+
+    X = G sqrt((nu-2)/U), G~N(0,I), U~chi-square(nu), one shared U per vector.
+    Every unit projection has the same variance-one univariate Student-t law.
+    For nu=3,5,9 its characteristic function has an exact polynomial form,
+    avoiding special-function dependencies or sampling noise in the target.
+    SIGReg's Gaussian integration window is intentionally left unchanged.
+    """
+    def __init__(self, df=5, **kwargs):
+        if df not in (3, 5, 9):
+            raise ValueError("Supported degrees of freedom are 3, 5 and 9")
+        super().__init__(kind="gaussian", **kwargs)
+        self.df = df
+        self.kind = "student_t"
+        x = math.sqrt(df - 2) * self.t.abs()
+        if df == 3:
+            polynomial = 1 + x
+        elif df == 5:
+            polynomial = 1 + x + x.square() / 3
+        else:
+            polynomial = 1 + x + 3*x.square()/7 + 2*x.pow(3)/21 + x.pow(4)/105
+        self.register_buffer("student_phi", polynomial * torch.exp(-x))
+
+    def target_cf(self, directions):
+        return self.student_phi.expand(directions.shape[1], -1)
+
+
 class NoRegularizer(nn.Module):
     def forward(self, z):
         return z.new_zeros(())
 
 
 def make_regularizer(kind, num_proj=64, separation=.75, knots=17):
+    if kind in {"student_t3", "student_t5", "student_t9"}:
+        return StudentTRegularizer(df=int(kind.removeprefix("student_t")), num_proj=num_proj, knots=knots)
     if kind == "none":
         return NoRegularizer()
     if kind == "moments":

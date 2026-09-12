@@ -143,7 +143,8 @@ def diagnostics(m, train, train_states, data, states):
             "mixture_axis_histogram": hist.cpu().tolist()}
 
 
-def run(args):
+def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=()):
+    grid = GRID if grid is None else grid
     torch.set_num_threads(4)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     args.output.mkdir(parents=True, exist_ok=True)
@@ -153,18 +154,18 @@ def run(args):
     train, train_states = get(12000, 256)
     val, val_states = get(24000, 128)
     report = {"scope": "fixed-width synthetic pilot; no decoder; not published TwoRoom",
-              "width": WIDTH, "steps": args.steps, "grid": GRID, "seeds": args.seeds,
-              "data_seeds": {"train": 12000, "validation": 24000, "test": 36000},
+              "width": WIDTH, "steps": args.steps, "grid": grid, "seeds": args.seeds,
+              "data_seeds": {"train": 12000, "validation": 24000, "test": test_seed},
               "selection": "minimum mean validation CEM goal distance across initialization seeds",
               "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
               "torch": torch.__version__, "device": device,
               "source_sha256": {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in [
-                  Path(__file__), Path("src/lewm/regularizers.py"), Path("experiments/pilot.py")]},
+                  Path(__file__), Path("src/lewm/regularizers.py"), Path("experiments/pilot.py"), *sources]},
               "validation": [], "test": []}
     def save():
         (args.output / "results.json").write_text(json.dumps(report, indent=2))
     for seed in args.seeds:
-        for kind, weights in GRID.items():
+        for kind, weights in grid.items():
             for weight in weights:
                 torch.manual_seed(seed)
                 m = model().to(device)
@@ -190,25 +191,34 @@ def run(args):
                 seconds = time.perf_counter()-start
                 m.eval()
                 metrics = {**diagnostics(m, train, train_states, val, val_states), **planning(m, val, val_states)}
+                if extra_diagnostics is not None:
+                    metrics.update(extra_diagnostics(m, val))
                 row = dict(kind=kind, weight=weight, seed=seed, train_seconds=seconds, **metrics)
                 report["validation"].append(row)
                 torch.save(m.state_dict(), args.output / f"{kind}-w{weight}-s{seed}.pt")
                 save()
                 print(json.dumps({k: v for k, v in row.items() if not isinstance(v, list)}), flush=True)
     selected = {}
-    for kind, weights in GRID.items():
+    for kind, weights in grid.items():
         selected[kind] = min(weights, key=lambda w: statistics.mean(
             r["goal_distance"] for r in report["validation"] if r["kind"] == kind and r["weight"] == w))
     report["selected_weights"] = selected
+    student_kinds = [kind for kind in grid if kind.startswith("student_t")]
+    if student_kinds:
+        report["selected_student_kind"] = min(student_kinds, key=lambda kind: statistics.mean(
+            r["goal_distance"] for r in report["validation"]
+            if r["kind"] == kind and r["weight"] == selected[kind]))
     save()
     # Only now load the independent test trajectories. No coefficient changes after this.
-    test, test_states = get(36000, 128)
+    test, test_states = get(test_seed, 128)
     for kind, weight in selected.items():
         for seed in args.seeds:
             m = model().to(device).eval()
             m.load_state_dict(torch.load(args.output / f"{kind}-w{weight}-s{seed}.pt", map_location=device, weights_only=True))
             row = dict(kind=kind, weight=weight, seed=seed,
                        **diagnostics(m, train, train_states, test, test_states), **planning(m, test, test_states))
+            if extra_diagnostics is not None:
+                row.update(extra_diagnostics(m, test))
             report["test"].append(row)
             save()
     print("DONE: " + str(args.output / "results.json"), flush=True)
