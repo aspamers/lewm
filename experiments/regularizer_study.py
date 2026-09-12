@@ -143,7 +143,7 @@ def diagnostics(m, train, train_states, data, states):
             "mixture_axis_histogram": hist.cpu().tolist()}
 
 
-def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=()):
+def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=(), fixed_comparison=False):
     grid = GRID if grid is None else grid
     torch.set_num_threads(4)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -156,7 +156,8 @@ def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=())
     report = {"scope": "fixed-width synthetic pilot; no decoder; not published TwoRoom",
               "width": WIDTH, "steps": args.steps, "grid": grid, "seeds": args.seeds,
               "data_seeds": {"train": 12000, "validation": 24000, "test": test_seed},
-              "selection": "minimum mean validation CEM goal distance across initialization seeds",
+              "selection": ("fixed targets and coefficients; no selection" if fixed_comparison else
+                            "minimum mean validation CEM goal distance across initialization seeds"),
               "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
               "torch": torch.__version__, "device": device,
               "source_sha256": {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in [
@@ -204,7 +205,7 @@ def run(args, *, grid=None, test_seed=36000, extra_diagnostics=None, sources=())
             r["goal_distance"] for r in report["validation"] if r["kind"] == kind and r["weight"] == w))
     report["selected_weights"] = selected
     student_kinds = [kind for kind in grid if kind.startswith("student_t")]
-    if student_kinds:
+    if student_kinds and not fixed_comparison:
         report["selected_student_kind"] = min(student_kinds, key=lambda kind: statistics.mean(
             r["goal_distance"] for r in report["validation"]
             if r["kind"] == kind and r["weight"] == selected[kind]))
