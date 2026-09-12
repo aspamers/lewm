@@ -1,0 +1,15 @@
+{
+  "calibration_split": "train",
+  "calibration_clips": 512,
+  "validation_clips": 256,
+  "validation_seed": 7791,
+  "checkpoints": {
+    "two-environment-benchmark/tworoom/gaussian-w0.03-s31": "fa27a70a0849c8d871b3178ba0db4a6cfc42288464f44b1abc7644abe80e6447",
+    "two-environment-benchmark/tworoom/variance_decorrelation-w0.1-s31": "caa85ea0d921cb515f3f638bfb8fe63905837756854b682b3349fca4f6f7b085",
+    "scale-fix-trial/legacy-fp32": "30b85a72986c17080146ac101528aa14026eada338b805842c81deff409ba26a",
+    "scale-fix-trial/corrected-fp32": "ec47d48644008cc6806d1cc9b61db7e5767ef8ea42418809fccb4e39db3c166a",
+    "floor-strength/floor0.3-s31": "003f74acad71849c768e8f36fd983f500892d8bf1ba594600cf6f0740494b347",
+    "floor-strength/floor1-s31": "2c58ef72572d20423110973cf30c9078694a315f770f6f539344a9b56f956493"
+  },
+  "code_sha256": "f559053039119c5eefec1fd79997ddbf948c52eaca97986f67982b480bfe17c1"
+}
