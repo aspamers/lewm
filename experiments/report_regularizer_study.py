@@ -107,6 +107,8 @@ def main():
     axes[-1].set_xlim(-2, 2)
     fig.savefig(args.directory / "mixture-axis.png", dpi=150)
     fig.savefig(args.directory / "mixture-axis.svg")
+    svg_path = args.directory / "mixture-axis.svg"
+    svg_path.write_text("\n".join(line.rstrip() for line in svg_path.read_text(encoding="utf-8").splitlines()) + "\n", encoding="utf-8")
     plt.close(fig)
     print("\n".join(lines[:15]))
 
