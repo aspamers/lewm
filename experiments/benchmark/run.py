@@ -26,7 +26,7 @@ from check_data import check as check_data
 from rechunk import convert
 from runtime import build_model, normalize_pixels, objective
 from calibration import calibrate_projection_bn
-from lewm.regularizers import make_regularizer
+from lewm.regularizers import make_regularizer, VarianceFloorRegularizer
 
 ENVIRONMENTS = {"tworoom": ("tworoom.h5", "swm/TwoRoom-v1"),
                 "pusht": ("pusht_expert_train.h5", "swm/PushT-v1")}
@@ -119,7 +119,12 @@ def train(path, partition, kind, weight, seed, args, output):
     torch.backends.cudnn.allow_tf32 = False
     model = build_model(len(partition["action_mean"])).cuda().train()
     model.encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    reg = make_regularizer(kind, num_proj=1024).cuda()
+    regularizer_parameters = {}
+    if kind == "variance_decorrelation" and hasattr(args, "floor_weight"):
+        regularizer_parameters = {"floor_weight":args.floor_weight,"correlation_weight":args.correlation_weight}
+        reg = VarianceFloorRegularizer(True, **regularizer_parameters).cuda()
+    else:
+        reg = make_regularizer(kind, num_proj=1024).cuda()
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-3)
     step0, elapsed = 0, 0.
     if resume.exists():
@@ -168,6 +173,7 @@ def train(path, partition, kind, weight, seed, args, output):
     torch.save(model.state_dict(), output/"weights.pt")
     result = {"kind": kind, "weight": weight, "seed": seed, "steps": args.steps,
               "precision": precision, "encoder_gradient_checkpointing": True,
+              "regularizer_parameters":regularizer_parameters,
               "train_seconds": elapsed+time.perf_counter()-start,
               "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
               "parameters": sum(p.numel() for p in model.parameters())}
