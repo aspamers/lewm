@@ -117,7 +117,8 @@ def run(cfg):
     data_module = spt.data.DataModule(train=train, val=val)
     world_model = spt.Module(
         model = world_model,
-        sigreg = SIGReg(**cfg.loss.sigreg.kwargs),
+        sigreg = (hydra.utils.instantiate(cfg.regularizer) if cfg.get("regularizer")
+                  else SIGReg(**cfg.loss.sigreg.kwargs)),
         forward=partial(lejepa_forward, cfg=cfg),
         optim=optimizers,
     )

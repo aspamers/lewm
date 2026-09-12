@@ -1,0 +1,21 @@
+defaults:
+  - lewm
+  - _self_
+
+# Original architecture, original width and four-frame one-step loss. No decoder.
+split_seed: 42
+target: gaussian
+subdir: ${target}-w${experiment.sigreg_weight}-s${seed}
+output_model_name: ${subdir}
+regularizer:
+  _target_: lewm.regularizers.make_regularizer
+  kind: ${target}
+  separation: 0.75
+  knots: ${loss.sigreg.kwargs.knots}
+  num_proj: ${loss.sigreg.kwargs.num_proj}
+experiment:
+  history_size: ${history_size}
+  horizons: [1]
+  latent_weight: 1.0
+  observation_weight: 0.0
+  sigreg_weight: 0.09
