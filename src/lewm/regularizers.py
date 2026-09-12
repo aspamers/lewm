@@ -104,11 +104,15 @@ class VarianceFloorRegularizer(nn.Module):
     No mean anchor, upper variance bound, or prescribed distribution shape.
     Compute statistics across batch separately at each time, as in SIGReg.
     Correlation (not covariance) discourages duplicate directions without
-    directly rewarding smaller scales. Its relative coefficient is fixed at 1.
+    directly rewarding smaller scales. Weights default to one for compatibility.
     """
-    def __init__(self, decorrelate=False):
+    def __init__(self, decorrelate=False, floor_weight=1., correlation_weight=1.):
         super().__init__()
+        if any(not math.isfinite(w) or w < 0 for w in (floor_weight, correlation_weight)):
+            raise ValueError("Regularizer weights must be finite and nonnegative")
         self.decorrelate = decorrelate
+        self.floor_weight = floor_weight
+        self.correlation_weight = correlation_weight
 
     def forward(self, z):
         if z.ndim != 3 or z.shape[1] < 2 or z.shape[2] < 2:
@@ -124,7 +128,7 @@ class VarianceFloorRegularizer(nn.Module):
         variance = centered.square().sum(1) / (z.shape[1]-1)
         floor = torch.relu(1 - (variance + 1e-4).sqrt()).square().mean()
         if not self.decorrelate:
-            return floor
+            return self.floor_weight * floor
         # A fixed positive variance floor rewards shrinking nonzero features
         # below it. Normalize every nonconstant coordinate by its actual std.
         # Substitute one only for exactly constant coordinates: their centered
@@ -134,7 +138,7 @@ class VarianceFloorRegularizer(nn.Module):
         corr = standardized.transpose(-1, -2) @ standardized / (z.shape[1]-1)
         offdiag = corr - torch.diag_embed(corr.diagonal(dim1=-2, dim2=-1))
         d = z.shape[-1]
-        return floor + offdiag.square().sum((-1, -2)).mean() / (d*(d-1))
+        return self.floor_weight * floor + self.correlation_weight * offdiag.square().sum((-1, -2)).mean() / (d*(d-1))
 
 
 class NoRegularizer(nn.Module):

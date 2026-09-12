@@ -40,3 +40,12 @@ def test_cpu_autocast_does_not_change_moment_penalty():
     with torch.autocast("cpu", dtype=torch.bfloat16):
         actual = regularizer(x)
     torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+
+
+def test_floor_weight_does_not_change_correlation_contribution():
+    x = torch.randn(2, 32, 8)*.1
+    floor = VarianceFloorRegularizer(False)(x)
+    corr = correlation(x)
+    for weight in (.1, .3, 1., 3.):
+        actual = VarianceFloorRegularizer(True, floor_weight=weight, correlation_weight=.1)(x)
+        torch.testing.assert_close(actual, weight*floor+.1*corr)
