@@ -98,6 +98,34 @@ class StudentTRegularizer(DistributionRegularizer):
         return self.student_phi.expand(directions.shape[1], -1)
 
 
+class VarianceFloorRegularizer(nn.Module):
+    """Soft per-coordinate std floor, optionally plus mean squared correlation.
+
+    No mean anchor, upper variance bound, or prescribed distribution shape.
+    Compute statistics across batch separately at each time, as in SIGReg.
+    Correlation (not covariance) discourages duplicate directions without
+    directly rewarding smaller scales. Its relative coefficient is fixed at 1.
+    """
+    def __init__(self, decorrelate=False):
+        super().__init__()
+        self.decorrelate = decorrelate
+
+    def forward(self, z):
+        if z.ndim != 3 or z.shape[1] < 2 or z.shape[2] < 2:
+            raise ValueError("Expected (time, batch>=2, latent>=2)")
+        z = z.float()
+        centered = z - z.mean(1, keepdim=True)
+        variance = centered.square().sum(1) / (z.shape[1]-1)
+        floor = torch.relu(1 - (variance + 1e-4).sqrt()).square().mean()
+        if not self.decorrelate:
+            return floor
+        standardized = centered / variance.clamp_min(1e-4).sqrt().unsqueeze(1)
+        corr = standardized.transpose(-1, -2) @ standardized / (z.shape[1]-1)
+        offdiag = corr - torch.diag_embed(corr.diagonal(dim1=-2, dim2=-1))
+        d = z.shape[-1]
+        return floor + offdiag.square().sum((-1, -2)).mean() / (d*(d-1))
+
+
 class NoRegularizer(nn.Module):
     def forward(self, z):
         return z.new_zeros(())
@@ -146,6 +174,8 @@ RADIAL_VARIANCES = {"radial_broad": 8., "radial_half": .5,
 
 
 def make_regularizer(kind, num_proj=64, separation=.75, knots=17, latent_dim=192):
+    if kind in {"variance_floor", "variance_decorrelation"}:
+        return VarianceFloorRegularizer(decorrelate=kind == "variance_decorrelation")
     if kind in RADIAL_VARIANCES:
         return RadialRegularizer(relative_variance=RADIAL_VARIANCES[kind],
                                  latent_dim=latent_dim, num_proj=num_proj, knots=knots)
