@@ -2,6 +2,10 @@
 
 Fork of Mengarr/lewm at `8a2c595813d0eee85b2dbffa6f58ff0842f9e673`.
 
+The completed 24-run synthetic pilot is documented in
+[the results report](results/pilot-1000/REPORT.md), with per-seed measurements
+and fixed held-out prediction images. It does not establish benchmark performance.
+
 Test whether future-observation supervision can preserve useful information
 without SIGReg. This changes the objective, not dense-network compute. No gates,
 whitening, rank floor, EMA, or pruning are introduced.
@@ -48,6 +52,7 @@ $env:PYTHONPATH = 'src'
 & $python -m pytest tests -q
 & $python experiments/pilot.py --steps 1000 --seeds 0 1 2 --output outputs/pilot-1000
 & $python experiments/analyze_pilot.py outputs/pilot-1000
+& $python experiments/preview_pilot.py outputs/pilot-1000
 ```
 
 To create a fresh CUDA environment, use Python 3.12 and install the pinned

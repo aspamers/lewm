@@ -1,5 +1,8 @@
 
 # LeWorldModel
+
+This fork adds [predictive bottleneck experiments](experiments/README.md).
+
 ### Stable End-to-End Joint-Embedding Predictive Architecture from Pixels
 
 [Lucas Maes*](https://x.com/lucasmaes_), [Quentin Le Lidec*](https://quentinll.github.io/), [Damien Scieur](https://scholar.google.com/citations?user=hNscQzgAAAAJ&hl=fr), [Yann LeCun](https://yann.lecun.com/) and [Randall Balestriero](https://randallbalestriero.github.io/)

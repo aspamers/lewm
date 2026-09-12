@@ -51,8 +51,9 @@ def main():
     (args.directory / "analyzed.json").write_text(json.dumps(report, indent=2))
     lines = ["# Synthetic predictive-bottleneck pilot", "",
              "Not the published TwoRoom benchmark. Small CNN, upstream transformer/SIGReg; "
-             "256 training and 64 held-out synthetic episodes, 1,000 updates per run.", "",
-             "Values are mean ± sample standard deviation across three initialization seeds. "
+             f"256 training and 64 held-out synthetic episodes; updates per run: {sorted({r['steps'] for r in report['results']})}.", "",
+             f"Initialization seeds: {sorted({r['seed'] for r in report['results']})}. "
+             "Values are mean ± sample standard deviation across initialization seeds. "
              "Lower errors are better. State is used only for diagnostic probes.", "",
              "| Width | Variant | Future image MSE | Position probe MSE | Latent variance |",
              "|---|---|---|---|---|"]
@@ -77,6 +78,11 @@ def main():
               "action-shuffle sensitivity, and zero-ablation of the least-variable quarter of input features. "
               "Ablation is coordinate-dependent and is not evidence of a uniquely meaningful subspace. "
               "No planning-success result has been measured."]
+    lines += ["", "Mean increase in observation MSE after shuffling actions between held-out episodes:", ""]
+    for variant in dict.fromkeys(r["variant"] for r in report["results"]):
+        delta = statistics.mean(r["action_shuffle_delta"] for r in report["results"] if r["variant"] == variant)
+        lines.append(f"- {variant}: {delta:.6g}")
+    lines += ["", "![Fixed held-out forecast examples](predictions.png)"]
     (args.directory / "REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
 
