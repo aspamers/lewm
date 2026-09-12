@@ -1,0 +1,24 @@
+{
+  "shape": [
+    4,
+    64,
+    192
+  ],
+  "dtype": "torch.bfloat16",
+  "torch": "2.6.0+cu124",
+  "gpu": "NVIDIA GeForce RTX 4070 Ti",
+  "warmup": 40,
+  "repeats": 200,
+  "results": {
+    "gaussian": {
+      "median_gpu_ms": 1.1221280097961426,
+      "p95_gpu_ms": 1.5154415547847746,
+      "median_wall_ms": 1.150880999830406
+    },
+    "variance_decorrelation": {
+      "median_gpu_ms": 1.179136037826538,
+      "p95_gpu_ms": 1.5995360314846006,
+      "median_wall_ms": 1.2157825003669132
+    }
+  }
+}

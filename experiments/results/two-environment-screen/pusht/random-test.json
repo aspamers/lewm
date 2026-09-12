@@ -1,0 +1,39 @@
+{
+  "success_rate": 0.0,
+  "episode_successes": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "seeds": [
+    7031,
+    24805,
+    10310,
+    21896,
+    8956,
+    24297,
+    22406,
+    12076,
+    16973,
+    21789,
+    19261,
+    7127,
+    21011,
+    22491,
+    8583,
+    15600
+  ]
+}

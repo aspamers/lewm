@@ -77,7 +77,8 @@ and [PushT](https://huggingface.co/datasets/quentinll/lewm-pusht).
 ## Status
 
 The bounded sweep was launched on 2026-09-12 after 48 tests and real-data
-training/planning smoke checks passed. Final scientific results are pending.
+training/planning smoke checks passed. The sweep and final diagnostics are now
+complete; see `../results/two-environment-screen/FINDINGS.md` and `REPORT.md`.
 Smoke-test random images measure throughput only and are never scientific
 training data. After `run.py` completes, `finalize.py` measures held-out embedding
 spread and isolated regularizer cost, generates the report, and exports a compact

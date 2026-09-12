@@ -1,0 +1,156 @@
+[
+  {
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.9149716466096282,
+    "std_min": 0.2004897819799178,
+    "covariance_entropy_rank": 2.1140072469203672,
+    "mean_absolute_correlation": 0.6215142723227072
+  },
+  {
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.9025904358728775,
+    "std_min": 0.10172416855549614,
+    "covariance_entropy_rank": 2.5548316777282807,
+    "mean_absolute_correlation": 0.5456561736007457
+  },
+  {
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.09,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.9122674398314979,
+    "std_min": 0.2948206516804585,
+    "covariance_entropy_rank": 5.804776719087826,
+    "mean_absolute_correlation": 0.3589976818929375
+  },
+  {
+    "environment": "tworoom",
+    "kind": "gaussian",
+    "weight": 0.09,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.8520642896325094,
+    "std_min": 0.31775997099024367,
+    "covariance_entropy_rank": 6.30935856050426,
+    "mean_absolute_correlation": 0.3475123797289722
+  },
+  {
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.00657762047640767,
+    "std_min": 0.003118242632613986,
+    "covariance_entropy_rank": 8.18593173525934,
+    "mean_absolute_correlation": 0.30475004656619037
+  },
+  {
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.1,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.005359999622768661,
+    "std_min": 0.0025306921929673606,
+    "covariance_entropy_rank": 8.598961058853718,
+    "mean_absolute_correlation": 0.3178274471894998
+  },
+  {
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.054053381054173705,
+    "std_min": 0.025045614106704594,
+    "covariance_entropy_rank": 8.208305212691391,
+    "mean_absolute_correlation": 0.31643257437671474
+  },
+  {
+    "environment": "tworoom",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.049639894087882,
+    "std_min": 0.018302528749132466,
+    "covariance_entropy_rank": 9.017234896432909,
+    "mean_absolute_correlation": 0.3041775640631571
+  },
+  {
+    "environment": "pusht",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.8078585937076374,
+    "std_min": 0.17817808901515492,
+    "covariance_entropy_rank": 2.8006636298276426,
+    "mean_absolute_correlation": 0.5066720558875559
+  },
+  {
+    "environment": "pusht",
+    "kind": "gaussian",
+    "weight": 0.03,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.8446729161586619,
+    "std_min": 0.18880369728345883,
+    "covariance_entropy_rank": 3.0204903697261067,
+    "mean_absolute_correlation": 0.4967133389440668
+  },
+  {
+    "environment": "pusht",
+    "kind": "gaussian",
+    "weight": 0.09,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.8744559921225781,
+    "std_min": 0.30878540975502516,
+    "covariance_entropy_rank": 7.055946650299977,
+    "mean_absolute_correlation": 0.3332523416000879
+  },
+  {
+    "environment": "pusht",
+    "kind": "gaussian",
+    "weight": 0.09,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.8594494402313136,
+    "std_min": 0.3902922826259092,
+    "covariance_entropy_rank": 7.3726861320825225,
+    "mean_absolute_correlation": 0.32000162685457373
+  },
+  {
+    "environment": "pusht",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "seed": 31,
+    "clips": 512,
+    "std_mean": 0.5894671053976719,
+    "std_min": 0.3346492661918877,
+    "covariance_entropy_rank": 5.054334209926364,
+    "mean_absolute_correlation": 0.3880609074586955
+  },
+  {
+    "environment": "pusht",
+    "kind": "variance_decorrelation",
+    "weight": 0.3,
+    "seed": 32,
+    "clips": 512,
+    "std_mean": 0.608935612629094,
+    "std_min": 0.2172904098280725,
+    "covariance_entropy_rank": 3.267352332308561,
+    "mean_absolute_correlation": 0.4951599209808232
+  }
+]

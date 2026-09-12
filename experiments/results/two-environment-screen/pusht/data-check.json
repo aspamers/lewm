@@ -1,0 +1,29 @@
+{
+  "environment": "pusht",
+  "path": "/data/datasets/pusht_expert_train.h5",
+  "episodes": 18685,
+  "frames": 2336736,
+  "action_shape": [
+    2336736,
+    2
+  ],
+  "pixel_shape": [
+    2336736,
+    224,
+    224,
+    3
+  ],
+  "pixel_mse": 0.00027502902713372933,
+  "one_step_state_max_abs_error": 0.8375194962490013,
+  "generated_evaluation_seed": true,
+  "columns": [
+    "action",
+    "ep_len",
+    "ep_offset",
+    "episode_idx",
+    "pixels",
+    "proprio",
+    "state",
+    "step_idx"
+  ]
+}

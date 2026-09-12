@@ -1,0 +1,118 @@
+{
+  "performance": [
+    {
+      "environment": "tworoom",
+      "setting": "selected",
+      "kind": "gaussian",
+      "weight": 0.03,
+      "scores": [
+        18.75,
+        43.75
+      ],
+      "mean": 31.25
+    },
+    {
+      "environment": "tworoom",
+      "setting": "selected",
+      "kind": "variance_decorrelation",
+      "weight": 0.1,
+      "scores": [
+        37.5,
+        31.25
+      ],
+      "mean": 34.375
+    },
+    {
+      "environment": "tworoom",
+      "setting": "fixed",
+      "kind": "gaussian",
+      "weight": 0.09,
+      "scores": [
+        25.0,
+        25.0
+      ],
+      "mean": 25.0
+    },
+    {
+      "environment": "tworoom",
+      "setting": "fixed",
+      "kind": "variance_decorrelation",
+      "weight": 0.3,
+      "scores": [
+        31.25,
+        25.0
+      ],
+      "mean": 28.125
+    },
+    {
+      "environment": "pusht",
+      "setting": "selected",
+      "kind": "gaussian",
+      "weight": 0.03,
+      "scores": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0
+    },
+    {
+      "environment": "pusht",
+      "setting": "selected",
+      "kind": "variance_decorrelation",
+      "weight": 0.3,
+      "scores": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0
+    },
+    {
+      "environment": "pusht",
+      "setting": "fixed",
+      "kind": "gaussian",
+      "weight": 0.09,
+      "scores": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0
+    },
+    {
+      "environment": "pusht",
+      "setting": "fixed",
+      "kind": "variance_decorrelation",
+      "weight": 0.3,
+      "scores": [
+        0.0,
+        0.0
+      ],
+      "mean": 0.0
+    }
+  ],
+  "cost": [
+    {
+      "environment": "tworoom",
+      "kind": "gaussian",
+      "median_seconds": 91.74818976199992,
+      "median_peak_gib": 6.642327785491943
+    },
+    {
+      "environment": "tworoom",
+      "kind": "variance_decorrelation",
+      "median_seconds": 93.97378101100003,
+      "median_peak_gib": 6.642326354980469
+    },
+    {
+      "environment": "pusht",
+      "kind": "gaussian",
+      "median_seconds": 95.05258049450003,
+      "median_peak_gib": 6.642327785491943
+    },
+    {
+      "environment": "pusht",
+      "kind": "variance_decorrelation",
+      "median_seconds": 94.2890356395003,
+      "median_peak_gib": 6.642326354980469
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "root": "/data",
+    "output": "outputs/two-environment-benchmark",
+    "environments": [
+      "tworoom",
+      "pusht"
+    ],
+    "steps": 500,
+    "batch": 64,
+    "seeds": [
+      31,
+      32
+    ],
+    "candidates": 64,
+    "cem_steps": 3,
+    "grid": {
+      "gaussian": [
+        0.03,
+        0.09,
+        0.27
+      ],
+      "variance_decorrelation": [
+        0.03,
+        0.1,
+        0.3
+      ]
+    },
+    "fixed": {
+      "gaussian": 0.09,
+      "variance_decorrelation": 0.3
+    }
+  },
+  "torch": "2.6.0+cu124",
+  "gpu": "NVIDIA GeForce RTX 4070 Ti",
+  "sources": {
+    "/workspace/experiments/benchmark/run.py": "f68f34b49e954e920ed7622b24ed41f45c8a38308938fbdd1cf42c7da6c6b431",
+    "/workspace/experiments/benchmark/runtime.py": "c8231f200bcd29ed5244527b6b89938a625e70aab7f679e04a2c3c704847bc9d",
+    "/workspace/experiments/benchmark/partitions.py": "0410cb59b0d5c0a53c37b63f0cd91a217033255dbb25695267ec79fb3632ffeb",
+    "/workspace/experiments/benchmark/check_data.py": "f20faca2ba80ffe580735299db31c96299f25a18849f2d67a1e0582b68ef61a5",
+    "/workspace/experiments/benchmark/rechunk.py": "ecc5283cfd34987d94922e1c06f12c07159dec1ef10a684e78a9b5d2ad76a3d8",
+    "src/lewm/regularizers.py": "c4581c43004ada5f4fcb790fd4919627caff58780400c5759dc3953b171c3418",
+    "src/lewm/jepa.py": "edf7959d535659da29d3948eb138dff54696572dd449dcd3b5646b21c41975af",
+    "src/lewm/module.py": "a12fc0681d2cc85f426a74324e8b27dedfe786287c63fb51b2d41cc1a3a80454",
+    "config/train/model/lewm.yaml": "ff2e2e961f6145335ae0f676fe9f453d2a5e4ae7eb65bcc75b50093f12e7852f",
+    "config/eval/tworoom.yaml": "a0d0b4843fbef54c6c79b12d36dd5e690c966194afc285171f069506552eaa50",
+    "config/eval/pusht.yaml": "de6f4922b3a483600965126f4f7755783a2603ae3c17b296895aa683cb52cacc"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "environment": "tworoom",
+  "path": "/data/datasets/tworoom.h5",
+  "episodes": 10000,
+  "frames": 920809,
+  "action_shape": [
+    920809,
+    2
+  ],
+  "pixel_shape": [
+    920809,
+    224,
+    224,
+    3
+  ],
+  "pixel_mse": 3.064951470784392e-10,
+  "one_step_state_max_abs_error": 0.0,
+  "generated_evaluation_seed": true,
+  "columns": [
+    "action",
+    "distance_to_target",
+    "ep_idx",
+    "ep_len",
+    "ep_offset",
+    "id",
+    "observation",
+    "pixels",
+    "pos_agent",
+    "pos_target",
+    "proprio",
+    "render_time",
+    "reward",
+    "step_idx",
+    "terminated",
+    "truncated"
+  ]
+}
