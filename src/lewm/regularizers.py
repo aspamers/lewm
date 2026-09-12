@@ -113,13 +113,24 @@ class VarianceFloorRegularizer(nn.Module):
     def forward(self, z):
         if z.ndim != 3 or z.shape[1] < 2 or z.shape[2] < 2:
             raise ValueError("Expected (time, batch>=2, latent>=2)")
+        # Casting alone does not prevent autocast from downcasting the matrix
+        # product. Keep all moment calculations in float32.
+        with torch.autocast(device_type=z.device.type, enabled=False):
+            return self._float_forward(z)
+
+    def _float_forward(self, z):
         z = z.float()
         centered = z - z.mean(1, keepdim=True)
         variance = centered.square().sum(1) / (z.shape[1]-1)
         floor = torch.relu(1 - (variance + 1e-4).sqrt()).square().mean()
         if not self.decorrelate:
             return floor
-        standardized = centered / variance.clamp_min(1e-4).sqrt().unsqueeze(1)
+        # A fixed positive variance floor rewards shrinking nonzero features
+        # below it. Normalize every nonconstant coordinate by its actual std.
+        # Substitute one only for exactly constant coordinates: their centered
+        # values are zero, and this keeps the value and backward pass finite.
+        safe_variance = torch.where(variance > 0, variance, torch.ones_like(variance))
+        standardized = centered / safe_variance.sqrt().unsqueeze(1)
         corr = standardized.transpose(-1, -2) @ standardized / (z.shape[1]-1)
         offdiag = corr - torch.diag_embed(corr.diagonal(dim1=-2, dim2=-1))
         d = z.shape[-1]

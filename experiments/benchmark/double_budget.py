@@ -30,7 +30,8 @@ def main():
     selected = {env: read(args.source/env/"selected.json") for env in old["settings"]["environments"]}
     settings = {**old["settings"], "output": str(args.output), "steps": old["settings"]["steps"]*2,
                 "selected": selected, "selection_source": str(args.source),
-                "restart": "from_scratch", "evaluation": "same goals; exploratory budget comparison"}
+                "restart": "from_scratch", "precision": "float32",
+                "evaluation": "same goals; exploratory budget comparison"}
     sources = {str(p): hashlib.sha256(p.read_bytes()).hexdigest()
                for p in [*Path("experiments/benchmark").glob("*.py"),
                          *Path("src/lewm").glob("*.py"), Path("config/train/model/lewm.yaml"),
@@ -69,7 +70,9 @@ def main():
     lines = ["# Selected-coefficient reruns at double the training budget", "",
              f"Eight fresh runs, {settings['steps']} updates each, batch {settings['batch']}, seeds {settings['seeds']}.",
              "Coefficients are frozen from the earlier validation selection; no new coefficient search.",
-             "Architecture, learning rate, prediction objective, regularizer, partitions and planning budget are unchanged.",
+             "Architecture, learning rate, prediction objective, partitions and planning budget are unchanged.",
+             "This executable now uses the corrected correlation loss and float32 training. Against the archived original",
+             "mixed-precision screen this changes methodology as well as training duration, so it is not a pure budget ablation.",
              "The same test goals are reused to compare budgets. This is exploratory follow-up, not independent confirmation.",
              "Fresh runs share initialization seeds and paired minibatches across methods. The longer sampler draws a new clip",
              "sequence, so these are not exact continuations of the earlier 500-update trajectories.", "",

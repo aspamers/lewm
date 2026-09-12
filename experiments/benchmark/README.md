@@ -1,5 +1,10 @@
 # Real-environment screening: TwoRoom and PushT
 
+The protocol below documents the completed original screen. After diagnosing
+precision-sensitive low embedding spread, new runs default to float32 training
+and use a corrected correlation penalty. See `SCALE_FIX.md`. These changes are
+not retroactive to the recorded results; use fresh output directories.
+
 Scope narrowed by the user to the two simplest target environments. Cube and
 Reacher are deferred. This is a bounded first pass on official datasets and
 real simulators, not the earlier synthetic moving-spot data and not a reproduction

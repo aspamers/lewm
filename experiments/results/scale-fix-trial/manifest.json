@@ -1,0 +1,13 @@
+{
+  "steps": 250,
+  "seed": 31,
+  "batch": 64,
+  "weight": 0.1,
+  "encoder_gradient_checkpointing": true,
+  "tf32": false,
+  "sources": {
+    "/workspace/experiments/benchmark/scale_fix_trial.py": "f956175266b835a8c07cd394a6fc978a705704cf40eb77521090477965c8aa28",
+    "src/lewm/regularizers.py": "a1dd41832ffd37a8351020cc7a4afe6a756ec0e67fdc69757bbdddec7e0728aa",
+    "experiments/benchmark/runtime.py": "c8231f200bcd29ed5244527b6b89938a625e70aab7f679e04a2c3c704847bc9d"
+  }
+}

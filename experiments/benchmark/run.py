@@ -110,7 +110,14 @@ def train(path, partition, kind, weight, seed, args, output):
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
+    precision = getattr(args, "precision", "float32")
+    if precision not in ("float32", "bfloat16"):
+        raise ValueError(f"Unsupported precision: {precision}")
+    # Avoid reduced-precision representation spread being mistaken for signal.
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
     model = build_model(len(partition["action_mean"])).cuda().train()
+    model.encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     reg = make_regularizer(kind, num_proj=1024).cuda()
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-3)
     step0, elapsed = 0, 0.
@@ -136,7 +143,7 @@ def train(path, partition, kind, weight, seed, args, output):
         # after raw normalization; boundary padding is not a prediction target.
         actions = torch.nan_to_num((actions-mean)/std).reshape(args.batch, 4, -1)
         optimizer.zero_grad(set_to_none=True)
-        with torch.autocast("cuda", dtype=torch.bfloat16):
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=precision == "bfloat16"):
             loss, prediction, penalty = objective(model, {"pixels": pixels, "action": actions},
                                                   reg, weight, seed*100000+step)
         if not torch.isfinite(loss):
@@ -159,6 +166,7 @@ def train(path, partition, kind, weight, seed, args, output):
     torch.cuda.synchronize()
     torch.save(model.state_dict(), output/"weights.pt")
     result = {"kind": kind, "weight": weight, "seed": seed, "steps": args.steps,
+              "precision": precision, "encoder_gradient_checkpointing": True,
               "train_seconds": elapsed+time.perf_counter()-start,
               "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
               "parameters": sum(p.numel() for p in model.parameters())}
@@ -236,6 +244,7 @@ def main():
     parser.add_argument("--environments", nargs="+", choices=ENVIRONMENTS, default=list(ENVIRONMENTS))
     parser.add_argument("--steps", type=int, default=500)
     parser.add_argument("--batch", type=int, default=64)
+    parser.add_argument("--precision", choices=["float32", "bfloat16"], default="float32")
     parser.add_argument("--seeds", type=int, nargs="+", default=[31, 32])
     parser.add_argument("--candidates", type=int, default=64)
     parser.add_argument("--cem-steps", type=int, default=3)
