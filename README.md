@@ -2,6 +2,8 @@
 # LeWorldModel
 
 This fork adds [predictive bottleneck experiments](experiments/README.md).
+The [direct regularizer study](experiments/REGULARIZER_STUDY.md) compares SIGReg
+with a Gaussian mixture and moment constraints, without a decoder.
 
 ### Stable End-to-End Joint-Embedding Predictive Architecture from Pixels
 
