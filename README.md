@@ -4,6 +4,8 @@
 This fork adds [predictive bottleneck experiments](experiments/README.md).
 The [direct regularizer study](experiments/REGULARIZER_STUDY.md) compares SIGReg
 with a Gaussian mixture and moment constraints, without a decoder.
+The [Student-t study](experiments/STUDENT_T_STUDY.md) changes tail behavior while
+keeping target covariance equal to identity.
 
 ### Stable End-to-End Joint-Embedding Predictive Architecture from Pixels
 
