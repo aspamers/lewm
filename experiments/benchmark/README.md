@@ -76,6 +76,10 @@ and [PushT](https://huggingface.co/datasets/quentinll/lewm-pusht).
 
 ## Status
 
-Implementation and setup are in progress. No scientific benchmark results
-have been produced at the time this protocol was written. Smoke-test random
-images measure throughput only and are never scientific training data.
+The bounded sweep was launched on 2026-09-12 after 48 tests and real-data
+training/planning smoke checks passed. Final scientific results are pending.
+Smoke-test random images measure throughput only and are never scientific
+training data. After `run.py` completes, `finalize.py` measures held-out embedding
+spread and isolated regularizer cost, generates the report, and exports a compact
+bundle to `experiments/results/two-environment-screen`. These diagnostics never
+change coefficient selection. Inspect `finalization.json` for completion/errors.
